@@ -1,0 +1,38 @@
+:root {
+  /* Kevin site-derived palette (kevin-ewing.com) */
+  --pl-color-bg: #191818;
+  --pl-color-bg-soft: #000000;
+  --pl-color-surface: #1f1f1f;
+  --pl-color-text: #FFFFFF;
+  --pl-color-text-muted: #B9B9B9;
+
+  --pl-color-primary: #0074F0;
+  --pl-color-secondary: #14A9FF;
+  --pl-color-accent: #4F7969;
+
+  --pl-color-success: #32A94C;
+  --pl-color-warning: #BF4408;
+  --pl-color-danger: #BF2626;
+  --pl-color-border: #595959;
+
+  --pl-gradient-primary: linear-gradient(135deg, #0074F0 0%, #14A9FF 100%);
+
+  --pl-font-sans: Inter, SF Pro Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --pl-font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --pl-radius-sm: 8px;
+  --pl-radius-md: 12px;
+  --pl-radius-lg: 16px;
+  --pl-radius-pill: 999px;
+
+  --pl-space-1: 4px;
+  --pl-space-2: 8px;
+  --pl-space-3: 12px;
+  --pl-space-4: 16px;
+  --pl-space-5: 24px;
+  --pl-space-6: 32px;
+  --pl-space-7: 48px;
+
+  --pl-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.2);
+  --pl-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
