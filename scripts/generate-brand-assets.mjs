@@ -16,10 +16,13 @@ const cfg = {
   c1: args.c1 || '#78b3d6',
   c2: args.c2 || '#d86969',
   c3: args.c3 || '#4f7969',
-  topFill: args.topFill || '#f5f5f5',
+  c4: args.c4 || '#fccbcb',
+  topFill: args.topFill || '#f2f2f2',
   stroke: args.stroke || '#1e1e1e',
-  depth: Number(args.depth || 11),
+  depthX: Number(args.depthX || 12),
+  depthY: Number(args.depthY || -5),
   seed: Number(args.seed || 7),
+  transparent: String(args.transparent || 'true') === 'true',
   outDir: args.outDir || path.resolve(process.cwd(), 'assets'),
 };
 
@@ -44,7 +47,6 @@ function mulberry32(a) {
 }
 
 const rand = mulberry32(cfg.seed);
-const sidePalette = [cfg.c1, cfg.c2, cfg.c3, '#fccbcb'];
 
 function charAdvance(ch, fs) {
   if (/[ilI1]/.test(ch)) return fs * 0.34;
@@ -61,28 +63,30 @@ function wordMetrics(text, fs, tracking = 2) {
   return w;
 }
 
-function extrudedGlyph({ ch, x, y, fs, rotate, depth, dx, dy, idPrefix }) {
-  const layers = [];
+function sidePattern(id) {
+  return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="24" height="84" x="0" y="0">
+    <rect width="24" height="21" fill="${cfg.c1}"/>
+    <rect y="21" width="24" height="21" fill="${cfg.c2}"/>
+    <rect y="42" width="24" height="21" fill="${cfg.c3}"/>
+    <rect y="63" width="24" height="21" fill="${cfg.c4}"/>
+  </pattern>`;
+}
 
-  // Side depth layers: fill-only to avoid stacked multi-stroke banding artifacts.
-  for (let i = depth; i >= 1; i--) {
-    const col = sidePalette[i % sidePalette.length];
-    layers.push(
-      `<text x="${x + dx * i}" y="${y + dy * i}" font-size="${fs}" font-weight="800" fill="${col}" font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>`
-    );
-  }
+function extrudedGlyph({ ch, x, y, fs, rotate, dx, dy, idPrefix }) {
+  const pId = `${idPrefix}-pat`;
+  return `<g id="${idPrefix}" transform="rotate(${rotate} ${x} ${y})">
+    <defs>${sidePattern(pId)}</defs>
 
-  // Single back outline for depth silhouette.
-  layers.push(
-    `<text x="${x + dx * depth}" y="${y + dy * depth}" font-size="${fs}" font-weight="800" fill="none" stroke="${cfg.stroke}" stroke-opacity="0.9" stroke-width="1.0" paint-order="stroke" font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>`
-  );
+    <!-- back shape defines the side face coloring -->
+    <text x="${x + dx}" y="${y + dy}" font-size="${fs}" font-weight="800" fill="url(#${pId})"
+      stroke="${cfg.stroke}" stroke-width="1.0" paint-order="stroke"
+      font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>
 
-  // Front face with primary outline.
-  layers.push(
-    `<text x="${x}" y="${y}" font-size="${fs}" font-weight="800" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.2" paint-order="stroke" font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>`
-  );
-
-  return `<g id="${idPrefix}" transform="rotate(${rotate} ${x} ${y})">${layers.join('')}</g>`;
+    <!-- front face -->
+    <text x="${x}" y="${y}" font-size="${fs}" font-weight="800" fill="${cfg.topFill}"
+      stroke="${cfg.stroke}" stroke-width="1.2" paint-order="stroke"
+      font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>
+  </g>`;
 }
 
 function makeWordmarkSVG() {
@@ -100,9 +104,7 @@ function makeWordmarkSVG() {
   for (const ch of text) {
     const adv = charAdvance(ch, fs) + tracking;
     if (ch !== ' ') {
-      const rotate = (rand() - 0.5) * 12;
-      const dx = 0.65 + rand() * 0.65;
-      const dy = -0.10 - rand() * 0.35;
+      const rotate = (rand() - 0.5) * 10;
       glyphs.push(
         extrudedGlyph({
           ch,
@@ -110,9 +112,8 @@ function makeWordmarkSVG() {
           y: baseline,
           fs,
           rotate,
-          depth: cfg.depth,
-          dx,
-          dy,
+          dx: cfg.depthX,
+          dy: cfg.depthY,
           idPrefix: `glyph-${idx}`,
         })
       );
@@ -121,9 +122,11 @@ function makeWordmarkSVG() {
     idx++;
   }
 
+  const bgRect = cfg.transparent ? '' : `<rect width="${W}" height="${H}" rx="16" fill="${cfg.bg}"/>`;
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" fill="none">
-  <rect width="${W}" height="${H}" rx="16" fill="${cfg.bg}"/>
+  ${bgRect}
   <g>${glyphs.join('\n')}</g>
 </svg>`;
 }
@@ -132,25 +135,23 @@ function makeIconSVG(size = 256) {
   const fs = size * 0.62;
   const baseline = size * 0.70;
   const x = size * 0.26;
-  const rotate = -6;
-  const dx = 0.9;
-  const dy = -0.32;
 
   const glyph = extrudedGlyph({
     ch: cfg.iconText,
     x,
     y: baseline,
     fs,
-    rotate,
-    depth: Math.max(6, Math.floor(cfg.depth * 0.85)),
-    dx,
-    dy,
+    rotate: -6,
+    dx: Math.max(7, Math.round(cfg.depthX * 0.9)),
+    dy: Math.min(-2, Math.round(cfg.depthY * 0.9)),
     idPrefix: 'icon-glyph',
   });
 
+  const bgRect = cfg.transparent ? '' : `<rect width="${size}" height="${size}" rx="${Math.round(size * 0.12)}" fill="${cfg.bg}"/>`;
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none">
-  <rect width="${size}" height="${size}" rx="${Math.round(size * 0.12)}" fill="${cfg.bg}"/>
+  ${bgRect}
   ${glyph}
 </svg>`;
 }
