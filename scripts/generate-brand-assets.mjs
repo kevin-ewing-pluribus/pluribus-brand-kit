@@ -26,6 +26,7 @@ const cfg = {
   tilt: Number(args.tilt || 10),
   tracking: Number(args.tracking || -2),
   curveRes: Number(args.curveRes || 12),
+  fontSize: Number(args.fontSize || 276),
   seed: Number(args.seed || 12),
   transparent: String(args.transparent || 'true') === 'true',
   fontPath:
@@ -35,15 +36,6 @@ const cfg = {
 };
 
 fs.mkdirSync(cfg.outDir, { recursive: true });
-
-function esc(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
 
 function fmt(n) {
   return Number(n.toFixed(2));
@@ -87,6 +79,22 @@ function dist(a, b) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+function rotatePoint(p, cx, cy, deg) {
+  const r = (deg * Math.PI) / 180;
+  const cos = Math.cos(r);
+  const sin = Math.sin(r);
+  const x = p.x - cx;
+  const y = p.y - cy;
+  return { x: cx + x * cos - y * sin, y: cy + x * sin + y * cos };
+}
+
+function mergeBounds(b, p) {
+  if (!Number.isFinite(b.minX) || p.x < b.minX) b.minX = p.x;
+  if (!Number.isFinite(b.minY) || p.y < b.minY) b.minY = p.y;
+  if (!Number.isFinite(b.maxX) || p.x > b.maxX) b.maxX = p.x;
+  if (!Number.isFinite(b.maxY) || p.y > b.maxY) b.maxY = p.y;
+}
+
 function pathToD(commands, ox = 0, oy = 0) {
   const d = [];
   for (const c of commands) {
@@ -126,18 +134,14 @@ function sampleContours(commands, curveRes = 12) {
       const p0 = prev;
       const p1 = { x: c.x1, y: c.y1 };
       const p2 = { x: c.x, y: c.y };
-      for (let i = 1; i <= curveRes; i++) {
-        contour.push(quadAt(p0, p1, p2, i / curveRes));
-      }
+      for (let i = 1; i <= curveRes; i++) contour.push(quadAt(p0, p1, p2, i / curveRes));
       prev = p2;
     } else if (c.type === 'C' && prev) {
       const p0 = prev;
       const p1 = { x: c.x1, y: c.y1 };
       const p2 = { x: c.x2, y: c.y2 };
       const p3 = { x: c.x, y: c.y };
-      for (let i = 1; i <= curveRes; i++) {
-        contour.push(cubicAt(p0, p1, p2, p3, i / curveRes));
-      }
+      for (let i = 1; i <= curveRes; i++) contour.push(cubicAt(p0, p1, p2, p3, i / curveRes));
       prev = p3;
     } else if (c.type === 'Z') {
       if (contour.length && start && dist(contour[contour.length - 1], start) > 0.25) {
@@ -174,10 +178,10 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
       const a = contour[i];
       const b = contour[i + 1];
       if (dist(a, b) < 0.45) continue;
-      const pts = `${fmt(a.x + dx)},${fmt(a.y + dy)} ${fmt(b.x + dx)},${fmt(b.y + dy)} ${fmt(b.x)},${fmt(b.y)} ${fmt(a.x)},${fmt(a.y)}`;
-      sidePolys.push(
-        `<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" />`
-      );
+      const pts = `${fmt(a.x + dx)},${fmt(a.y + dy)} ${fmt(b.x + dx)},${fmt(b.y + dy)} ${fmt(
+        b.x
+      )},${fmt(b.y)} ${fmt(a.x)},${fmt(a.y)}`;
+      sidePolys.push(`<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" />`);
       faceIdx++;
     }
   }
@@ -187,6 +191,29 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
     ${sidePolys.join('\n')}
     <path d="${dFront}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.15" />
   </g>`;
+}
+
+function glyphBounds({ glyphPath, rotate, dx, dy }) {
+  const bb = glyphPath.getBoundingBox();
+  const cx = (bb.x1 + bb.x2) / 2;
+  const cy = (bb.y1 + bb.y2) / 2;
+
+  const b = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  const contours = sampleContours(glyphPath.commands, cfg.curveRes);
+
+  for (const contour of contours) {
+    for (const p of contour) {
+      mergeBounds(b, rotatePoint(p, cx, cy, rotate));
+      mergeBounds(b, rotatePoint({ x: p.x + dx, y: p.y + dy }, cx, cy, rotate));
+    }
+  }
+
+  const m = 0;
+  b.minX -= m;
+  b.minY -= m;
+  b.maxX += m;
+  b.maxY += m;
+  return b;
 }
 
 function measureText(font, text, fontSize, tracking) {
@@ -203,18 +230,18 @@ function measureText(font, text, fontSize, tracking) {
 }
 
 function renderWordmark(font) {
-  const W = 1400;
-  const H = 420;
-  const fs = 242;
+  const fs = cfg.fontSize;
   const width = measureText(font, cfg.text, fs, cfg.tracking);
   const scale = fs / font.unitsPerEm;
-  let x = (W - width) / 2;
-  const baseline = 292;
+  let x = 0;
+  const baseline = fs;
   const rand = mulberry32(cfg.seed);
 
   let prev = null;
   const groups = [];
   let idx = 0;
+  const all = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+
   for (const ch of cfg.text) {
     const glyph = font.charToGlyph(ch);
     if (prev) x += font.getKerningValue(prev, glyph) * scale;
@@ -225,7 +252,11 @@ function renderWordmark(font) {
       const ang = ((cfg.depthAngle + (rand() - 0.5) * cfg.depthJitter) * Math.PI) / 180;
       const dx = Math.cos(ang) * cfg.depth;
       const dy = Math.sin(ang) * cfg.depth;
+
       groups.push(glyphGroup({ glyphPath: pathObj, idx, rotate: rot, dx, dy }));
+      const gb = glyphBounds({ glyphPath: pathObj, rotate: rot, dx, dy });
+      mergeBounds(all, { x: gb.minX, y: gb.minY });
+      mergeBounds(all, { x: gb.maxX, y: gb.maxY });
       idx++;
     }
 
@@ -233,28 +264,58 @@ function renderWordmark(font) {
     prev = glyph;
   }
 
-  const bgRect = cfg.transparent ? '' : `<rect width="${W}" height="${H}" fill="${cfg.bg}"/>`;
+  if (!Number.isFinite(all.minX)) {
+    all.minX = 0;
+    all.minY = 0;
+    all.maxX = width;
+    all.maxY = fs;
+  }
+
+  const w = Math.max(1, Math.ceil(all.maxX - all.minX));
+  const h = Math.max(1, Math.ceil(all.maxY - all.minY));
+  const tx = -all.minX;
+  const ty = -all.minY;
+  const bgRect = cfg.transparent ? '' : `<rect width="${w}" height="${h}" fill="${cfg.bg}"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
   ${bgRect}
-  ${groups.join('\n')}
+  <g transform="translate(${fmt(tx)} ${fmt(ty)})">
+    ${groups.join('\n')}
+  </g>
 </svg>`;
 }
 
 function renderIcon(font) {
-  const S = 256;
-  const fs = 192;
+  const fs = 196;
   const glyph = font.charToGlyph(cfg.iconText);
-  const pathObj = glyph.getPath(52, 186, fs);
-  const g = glyphGroup({ glyphPath: pathObj, idx: 0, rotate: -6, dx: cfg.depth * 0.82, dy: -cfg.depth * 0.36 });
+  const pathObj = glyph.getPath(0, fs, fs);
+  const g = glyphGroup({
+    glyphPath: pathObj,
+    idx: 0,
+    rotate: -6,
+    dx: cfg.depth * 0.82,
+    dy: -cfg.depth * 0.36,
+  });
 
-  const bgRect = cfg.transparent ? '' : `<rect width="${S}" height="${S}" fill="${cfg.bg}"/>`;
+  const b = glyphBounds({
+    glyphPath: pathObj,
+    rotate: -6,
+    dx: cfg.depth * 0.82,
+    dy: -cfg.depth * 0.36,
+  });
+  const w = Math.max(1, Math.ceil(b.maxX - b.minX));
+  const h = Math.max(1, Math.ceil(b.maxY - b.minY));
+  const tx = -b.minX;
+  const ty = -b.minY;
+  const bgRect = cfg.transparent ? '' : `<rect width="${w}" height="${h}" fill="${cfg.bg}"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
   ${bgRect}
-  ${g}
+  <g transform="translate(${fmt(tx)} ${fmt(ty)})">
+    ${g}
+  </g>
 </svg>`;
 }
 
