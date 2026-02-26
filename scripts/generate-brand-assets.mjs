@@ -63,15 +63,25 @@ function wordMetrics(text, fs, tracking = 2) {
 
 function extrudedGlyph({ ch, x, y, fs, rotate, depth, dx, dy, idPrefix }) {
   const layers = [];
+
+  // Side depth layers: fill-only to avoid stacked multi-stroke banding artifacts.
   for (let i = depth; i >= 1; i--) {
     const col = sidePalette[i % sidePalette.length];
     layers.push(
-      `<text x="${x + dx * i}" y="${y + dy * i}" font-size="${fs}" font-weight="800" fill="${col}" stroke="${cfg.stroke}" stroke-width="0.8" paint-order="stroke" font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>`
+      `<text x="${x + dx * i}" y="${y + dy * i}" font-size="${fs}" font-weight="800" fill="${col}" font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>`
     );
   }
+
+  // Single back outline for depth silhouette.
+  layers.push(
+    `<text x="${x + dx * depth}" y="${y + dy * depth}" font-size="${fs}" font-weight="800" fill="none" stroke="${cfg.stroke}" stroke-opacity="0.9" stroke-width="1.0" paint-order="stroke" font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>`
+  );
+
+  // Front face with primary outline.
   layers.push(
     `<text x="${x}" y="${y}" font-size="${fs}" font-weight="800" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.2" paint-order="stroke" font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>`
   );
+
   return `<g id="${idPrefix}" transform="rotate(${rotate} ${x} ${y})">${layers.join('')}</g>`;
 }
 
