@@ -7,156 +7,153 @@
   <link rel="icon" type="image/svg+xml" href="./assets/pluribus-favicon.svg" />
   <link rel="stylesheet" href="./tokens.css" />
   <style>
-    body { margin: 0; font-family: var(--pl-font-sans); background: var(--pl-color-bg); color: var(--pl-color-text); }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 24px; }
-    .hero { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: center; background: var(--pl-color-surface); border: 1px solid var(--pl-color-border); border-radius: var(--pl-radius-lg); padding: 20px; box-shadow: var(--pl-shadow-sm); }
-    .hero h1 { margin: 0; font-size: 34px; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--pl-font-sans);
+      color: var(--pl-color-text);
+      background:
+        radial-gradient(1000px 500px at -10% -10%, rgba(128,176,208,0.25), transparent 60%),
+        radial-gradient(800px 420px at 105% -5%, rgba(88,120,104,0.22), transparent 60%),
+        radial-gradient(900px 500px at 50% 115%, rgba(200,104,104,0.16), transparent 60%),
+        var(--pl-color-bg);
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 18px 44px; }
+    .glass {
+      background: var(--pl-color-surface);
+      border: 1px solid var(--pl-color-border);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: var(--pl-radius-lg);
+      box-shadow: var(--pl-shadow-sm);
+    }
+    .hero { display: grid; grid-template-columns: 96px 1fr; gap: 18px; padding: 20px; align-items: center; }
+    .hero h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; }
     .hero p { margin: 8px 0 0; color: var(--pl-color-text-muted); }
-    h2 { margin-top: 36px; margin-bottom: 10px; font-size: 22px; }
-    h3 { margin: 18px 0 8px; font-size: 16px; }
-    p, li { line-height: 1.5; }
+    h2 { margin: 30px 0 10px; font-size: 22px; letter-spacing: -0.01em; }
+    h3 { margin: 0 0 10px; font-size: 15px; }
+    .grid { display: grid; gap: 14px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { padding: 16px; }
     .muted { color: var(--pl-color-text-muted); }
-    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .card { background: var(--pl-color-surface); border: 1px solid var(--pl-color-border); border-radius: var(--pl-radius-md); padding: 14px; }
-    .swatch { height: 70px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15); margin-bottom: 8px; }
-    .code { font-family: var(--pl-font-mono); font-size: 12px; background: #0d1425; border: 1px solid var(--pl-color-border); padding: 2px 8px; border-radius: 999px; }
-    .logo-row { display: flex; gap: 14px; flex-wrap: wrap; }
-    .logo-sample { display: flex; align-items: center; justify-content: center; min-height: 120px; border-radius: 12px; border: 1px solid var(--pl-color-border); padding: 12px; }
-    .sample-dark { background: #0A0F1C; }
-    .sample-light { background: #f5f8ff; }
-    .pill { display:inline-block; border-radius:999px; padding: 4px 10px; font-size: 12px; border: 1px solid var(--pl-color-border); background:#0d1425; }
-    .do { border-left: 4px solid var(--pl-color-success); padding-left: 10px; }
-    .dont { border-left: 4px solid var(--pl-color-danger); padding-left: 10px; }
-    .footer { margin-top: 42px; font-size: 12px; color: var(--pl-color-text-muted); border-top:1px solid var(--pl-color-border); padding-top: 14px; }
-    @media (max-width: 760px) { .hero { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } .wrap { padding: 14px; } }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--pl-color-border);
+      background: rgba(255,255,255,0.55);
+      font-size: 12px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .swatch { height: 72px; border-radius: 10px; border: 1px solid rgba(17,24,39,0.1); margin-bottom: 8px; }
+    .token {
+      font-family: var(--pl-font-mono);
+      font-size: 12px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--pl-color-border);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    ul { margin: 0; padding-left: 18px; line-height: 1.55; }
+    .logo-samples { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    .logo-box { border-radius: 12px; border: 1px solid var(--pl-color-border); padding: 12px; display:flex; align-items:center; justify-content:center; min-height: 110px; }
+    .logo-light { background: #fff; }
+    .logo-soft { background: rgba(248,248,248,0.88); }
+    .callout { border-left: 3px solid var(--pl-color-secondary); padding-left: 10px; }
+    .footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--pl-color-border); font-size: 12px; color: var(--pl-color-text-muted); }
+    a { color: #1f4f6b; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; text-align: left; }
+      .grid.two, .logo-samples { grid-template-columns: 1fr; }
+      .wrap { padding: 14px 12px 28px; }
+      h2 { margin-top: 22px; }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <section class="hero">
-      <img src="./assets/pluribus-logo.svg" alt="Pluribus logo" width="110" height="110" />
+    <section class="glass hero">
+      <img src="./assets/pluribus-logo.svg" width="86" height="86" alt="Pluribus logo" />
       <div>
         <h1>Pluribus Brand Guidelines</h1>
-        <p>Canonical identity system for anything generated by Pluribus. Use by default unless explicitly overridden.</p>
-        <p class="muted">Version 1.1.0 • Palette aligned to kevin-ewing.com</p>
+        <p>Modern, minimal, professional identity standard for anything from Pluribus.</p>
+        <p class="muted">Version 1.2.0 • aligned to blog.kevin-ewing.com logo colors</p>
       </div>
     </section>
 
-    <h2>1) Brand Intent</h2>
-    <div class="card">
-      <p><strong>Positioning:</strong> Calm, competent operator. High-signal output. Minimal fluff.</p>
-      <p><strong>Personality:</strong> Precise, direct, useful, professional.</p>
-      <p><strong>Recognition goal:</strong> You can instantly identify “this came from Pluribus.”</p>
-    </div>
+    <h2>1) Core Identity</h2>
+    <section class="glass card">
+      <p><strong>Voice:</strong> direct, clear, calm, professional.</p>
+      <p><strong>Visual signal:</strong> clean layout, restrained accents, translucent white surfaces.</p>
+      <p class="callout"><strong>Default rule:</strong> use this system unless Kevin explicitly requests otherwise.</p>
+    </section>
 
-    <h2>2) Logo and Favicon</h2>
-    <div class="card">
-      <p><strong>Primary logo:</strong> <a href="./assets/pluribus-logo.svg">pluribus-logo.svg</a></p>
-      <p><strong>Favicon:</strong> <a href="./assets/pluribus-favicon.svg">pluribus-favicon.svg</a></p>
-      <div class="logo-row">
-        <div class="logo-sample sample-dark"><img src="./assets/pluribus-logo.svg" alt="logo dark" width="88"/></div>
-        <div class="logo-sample sample-light"><img src="./assets/pluribus-logo.svg" alt="logo light" width="88"/></div>
+    <h2>2) Logo + Favicon</h2>
+    <section class="glass card">
+      <p><a href="./assets/pluribus-logo.svg">pluribus-logo.svg</a> · <a href="./assets/pluribus-favicon.svg">pluribus-favicon.svg</a></p>
+      <div class="logo-samples">
+        <div class="logo-box logo-light"><img src="./assets/pluribus-logo.svg" width="96" alt="logo on light"/></div>
+        <div class="logo-box logo-soft"><img src="./assets/pluribus-logo.svg" width="96" alt="logo on soft"/></div>
       </div>
-      <h3>Usage rules</h3>
-      <ul>
-        <li>Minimum digital size: 24px icon / 96px full lockup.</li>
-        <li>Clear space: at least half the icon width around logo.</li>
-        <li>Do not recolor logo outside approved palette.</li>
-      </ul>
-    </div>
+      <p class="muted" style="margin-top:10px;">Minimum digital size: 24px icon / 96px logo. Keep clear space equal to 50% of icon width.</p>
+    </section>
 
-    <h2>3) Color System</h2>
-    <div class="grid-2">
-      <div class="card"><div class="swatch" style="background:#191818"></div><div>Base Background <span class="code">#191818</span></div></div>
-      <div class="card"><div class="swatch" style="background:#1f1f1f"></div><div>Surface <span class="code">#1F1F1F</span></div></div>
-      <div class="card"><div class="swatch" style="background:#0074F0"></div><div>Primary <span class="code">#0074F0</span></div></div>
-      <div class="card"><div class="swatch" style="background:#14A9FF"></div><div>Secondary <span class="code">#14A9FF</span></div></div>
-      <div class="card"><div class="swatch" style="background:#32A94C"></div><div>Success <span class="code">#32A94C</span></div></div>
-      <div class="card"><div class="swatch" style="background:#BF2626"></div><div>Danger <span class="code">#BF2626</span></div></div>
-    </div>
-    <div class="card" style="margin-top:12px;">
-      <p><strong>Primary gradient:</strong> <span class="code">linear-gradient(135deg, #0074F0 0%, #14A9FF 100%)</span></p>
-      <p><strong>Accessibility baseline:</strong> body text contrast >= WCAG AA.</p>
-    </div>
+    <h2>3) Palette (from blog logo)</h2>
+    <section class="grid two">
+      <div class="glass card"><div class="swatch" style="background:#F8F8F8"></div><div>Base <span class="token">#F8F8F8</span></div></div>
+      <div class="glass card"><div class="swatch" style="background:#FFFFFF"></div><div>Canvas <span class="token">#FFFFFF</span></div></div>
+      <div class="glass card"><div class="swatch" style="background:#80B0D0"></div><div>Primary <span class="token">#80B0D0</span></div></div>
+      <div class="glass card"><div class="swatch" style="background:#587868"></div><div>Secondary <span class="token">#587868</span></div></div>
+      <div class="glass card"><div class="swatch" style="background:#C86868"></div><div>Accent <span class="token">#C86868</span></div></div>
+      <div class="glass card"><div class="swatch" style="background:linear-gradient(135deg,#80B0D0 0%,#587868 100%)"></div><div>Primary Gradient <span class="token">#80B0D0→#587868</span></div></div>
+    </section>
 
-    <h2>4) Typography</h2>
-    <div class="card">
-      <p><strong>UI Sans:</strong> Inter, SF Pro Text, system sans fallback.</p>
-      <p><strong>Monospace:</strong> JetBrains Mono, SFMono fallback.</p>
-      <p><strong>Scale:</strong> H1 34 / H2 22 / H3 16 / Body 15 / Meta 12</p>
-      <p><strong>Text rhythm:</strong> line-height 1.45-1.6, consistent spacing blocks.</p>
-    </div>
+    <h2>4) Type + Layout</h2>
+    <section class="glass card">
+      <p><strong>Typeface:</strong> Inter/system sans.</p>
+      <p><strong>Hierarchy:</strong> H1 32, H2 22, H3 15, Body 15, Meta 12.</p>
+      <p><strong>Spacing:</strong> 4/8/12/16/24/32/48 scale only.</p>
+      <p><strong>Corners:</strong> 10/14/20 (soft, modern).</p>
+    </section>
 
-    <h2>5) Shapes, Spacing, Motion</h2>
-    <div class="grid-2">
-      <div class="card">
-        <h3>Shape language</h3>
-        <p>Rounded rectangles, soft corners, no sharp ornamental geometry.</p>
-        <p><span class="pill">radius-sm 8</span> <span class="pill">radius-md 12</span> <span class="pill">radius-lg 16</span></p>
+    <h2>5) Components</h2>
+    <section class="grid two">
+      <div class="glass card">
+        <h3>Status Chips</h3>
+        <span class="pill">Healthy</span>
+        <span class="pill">Watch</span>
+        <span class="pill">Issue</span>
       </div>
-      <div class="card">
-        <h3>Spacing system</h3>
-        <p>4, 8, 12, 16, 24, 32, 48px increments only.</p>
-        <p>Dense info blocks use 12-16px vertical rhythm.</p>
+      <div class="glass card">
+        <h3>Surface Rule</h3>
+        <p>Use translucent white cards with subtle border + soft blur over a minimal gradient backdrop.</p>
       </div>
-    </div>
+    </section>
 
     <h2>6) Communication Signature</h2>
-    <div class="card">
+    <section class="glass card">
       <ul>
-        <li>Lead with result, then concrete facts.</li>
-        <li>Metrics must be defined in plain language.</li>
-        <li>Avoid abstract KPI labels without definitions.</li>
-        <li>One clear “Top Next Move” recommendation.</li>
+        <li>Lead with result, then proof.</li>
+        <li>Use concrete metrics only (define each number).</li>
+        <li>One actionable next move.</li>
       </ul>
-      <h3>Canonical sign-off</h3>
-      <p><span class="code">— Pluribus</span></p>
-    </div>
+      <p style="margin-top:10px;"><span class="token">— Pluribus</span></p>
+    </section>
 
-    <h2>7) Component Defaults</h2>
-    <div class="card">
-      <h3>Email reports (default)</h3>
+    <h2>7) Transferability</h2>
+    <section class="glass card">
+      <p>This kit is portable to web apps, docs, emails, dashboards.</p>
       <ul>
-        <li>Mobile-first single-column layout.</li>
-        <li>Section order: System Health, Automation Status, Change Report, Tool Discovery, Top Next Move.</li>
-        <li>No unexplained percentages.</li>
+        <li><a href="./tokens.css">tokens.css</a></li>
+        <li><a href="./tokens.json">tokens.json</a></li>
+        <li><a href="./assets/pluribus-logo.svg">logo.svg</a></li>
+        <li><a href="./assets/pluribus-favicon.svg">favicon.svg</a></li>
       </ul>
-      <h3>Status chips</h3>
-      <p><span class="pill" style="border-color:#1FC97A;color:#1FC97A;">Healthy</span> <span class="pill" style="border-color:#F5B100;color:#F5B100;">Watch</span> <span class="pill" style="border-color:#EF5252;color:#EF5252;">Issue</span></p>
-    </div>
+    </section>
 
-    <h2>8) Do / Don’t</h2>
-    <div class="grid-2">
-      <div class="card do">
-        <h3>Do</h3>
-        <ul>
-          <li>Use the Pluribus logo and palette consistently.</li>
-          <li>Keep outputs crisp and interpretable.</li>
-          <li>Use token files for transferability across products.</li>
-        </ul>
-      </div>
-      <div class="card dont">
-        <h3>Don’t</h3>
-        <ul>
-          <li>Use random colors/fonts per message.</li>
-          <li>Ship mystery metrics with no definitions.</li>
-          <li>Over-decorate at expense of readability.</li>
-        </ul>
-      </div>
-    </div>
-
-    <h2>9) Transferability Pack</h2>
-    <div class="card">
-      <p>This kit is portable across web apps, email templates, docs, dashboards.</p>
-      <ul>
-        <li><a href="./tokens.css">tokens.css</a> (CSS variables)</li>
-        <li><a href="./tokens.json">tokens.json</a> (design-token interchange)</li>
-        <li><a href="./assets/pluribus-logo.svg">pluribus-logo.svg</a></li>
-        <li><a href="./assets/pluribus-favicon.svg">pluribus-favicon.svg</a></li>
-      </ul>
-    </div>
-
-    <div class="footer">Pluribus Brand Guidelines • default identity standard</div>
+    <div class="footer">Pluribus Brand Guidelines • Modern minimal profile</div>
   </div>
 </body>
 </html>

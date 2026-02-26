@@ -1,15 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
-  <defs>
-    <linearGradient id="pluribusGrad" x1="128" y1="128" x2="896" y2="896" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0066FF"/>
-      <stop offset="1" stop-color="#00C2FF"/>
-    </linearGradient>
-  </defs>
-  <rect width="1024" height="1024" rx="224" fill="#0A0F1C"/>
+  <rect width="1024" height="1024" rx="220" fill="#F8F8F8"/>
   <g>
-    <path d="M260 260H500C604.934 260 690 345.066 690 450C690 554.934 604.934 640 500 640H364V764H260V260Z" fill="url(#pluribusGrad)"/>
-    <rect x="364" y="536" width="178" height="104" rx="52" fill="#0A0F1C"/>
-    <path d="M560 260H664V764H560V260Z" fill="#E7ECF7" fill-opacity="0.96"/>
-    <path d="M714 260H818V764H714V260Z" fill="#E7ECF7" fill-opacity="0.82"/>
+    <path d="M236 236H478C581.866 236 666 320.134 666 424C666 527.866 581.866 612 478 612H346V788H236V236Z" fill="#80B0D0"/>
+    <rect x="346" y="502" width="176" height="110" rx="55" fill="#F8F8F8"/>
+    <path d="M552 236H658V788H552V236Z" fill="#587868"/>
+    <path d="M712 236H818V788H712V236Z" fill="#C86868"/>
   </g>
 </svg>
