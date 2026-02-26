@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="813" height="256" viewBox="0 0 813 256" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="819" height="258" viewBox="0 0 819 258" fill="none">
   
-  <g transform="translate(-0.71 -50.35)">
+  <g transform="translate(4.29 -49.35)">
     <g transform="rotate(-0.52 59.7 180)">
     <path d="M 59.51 53.96 L 14.51 53.96 L 14.51 293.96 L 59.51 293.96 L 59.51 215.06 C 110.81 214.16 127.91 197.36 127.91 149.66 L 127.91 119.36 C 127.91 71.06 110.81 53.96 59.51 53.96 Z M 59.51 170.06 L 59.51 98.96 C 76.91 98.96 82.91 101.96 82.91 119.36 L 82.91 149.66 C 82.91 167.06 76.91 170.06 59.51 170.06 Z" fill="#ffffff" />
     <polygon points="59.51,53.96 14.51,53.96 3,60 48,60" fill="#78b3d6" />

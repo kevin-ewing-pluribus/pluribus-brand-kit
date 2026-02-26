@@ -207,7 +207,7 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
   </g>`;
 }
 
-function glyphBounds({ glyphPath, rotate, dx, dy }) {
+function glyphBounds({ glyphPath, rotate, dx, dy, extra = 1.2 }) {
   const bb = glyphPath.getBoundingBox();
   const cx = (bb.x1 + bb.x2) / 2;
   const cy = (bb.y1 + bb.y2) / 2;
@@ -222,7 +222,7 @@ function glyphBounds({ glyphPath, rotate, dx, dy }) {
     }
   }
 
-  const m = 1.2;
+  const m = extra;
   b.minX -= m;
   b.minY -= m;
   b.maxX += m;
@@ -285,10 +285,14 @@ function renderWordmark(font) {
     all.maxY = fs;
   }
 
-  const w = Math.max(1, Math.ceil(all.maxX - all.minX));
-  const h = Math.max(1, Math.ceil(all.maxY - all.minY));
-  const tx = -all.minX;
-  const ty = -all.minY;
+  const leftPad = 5;
+  const rightPad = 1;
+  const topPad = 1;
+  const bottomPad = 1;
+  const w = Math.max(1, Math.ceil(all.maxX - all.minX + leftPad + rightPad));
+  const h = Math.max(1, Math.ceil(all.maxY - all.minY + topPad + bottomPad));
+  const tx = -all.minX + leftPad;
+  const ty = -all.minY + topPad;
   const bgRect = cfg.transparent ? '' : `<rect width="${w}" height="${h}" fill="${cfg.bg}"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -301,7 +305,8 @@ function renderWordmark(font) {
 }
 
 function renderIcon(font) {
-  const fs = 196;
+  const S = 256;
+  const fs = 214;
   const glyph = font.charToGlyph(cfg.iconText);
   const pathObj = glyph.getPath(0, fs, fs);
   const g = glyphGroup({
@@ -317,17 +322,22 @@ function renderIcon(font) {
     rotate: -6,
     dx: cfg.depth * 0.82,
     dy: -cfg.depth * 0.36,
+    extra: 0.2,
   });
-  const w = Math.max(1, Math.ceil(b.maxX - b.minX));
-  const h = Math.max(1, Math.ceil(b.maxY - b.minY));
-  const tx = -b.minX;
-  const ty = -b.minY;
-  const bgRect = cfg.transparent ? '' : `<rect width="${w}" height="${h}" fill="${cfg.bg}"/>`;
+
+  const pad = 2;
+  const bw = Math.max(1, b.maxX - b.minX);
+  const bh = Math.max(1, b.maxY - b.minY);
+  const scale = Math.min((S - pad * 2) / bw, (S - pad * 2) / bh);
+  const tx = pad - b.minX * scale + ((S - pad * 2) - bw * scale) / 2;
+  const ty = pad - b.minY * scale + ((S - pad * 2) - bh * scale) / 2;
+
+  const bgRect = cfg.transparent ? '' : `<rect width="${S}" height="${S}" fill="${cfg.bg}"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" fill="none">
   ${bgRect}
-  <g transform="translate(${fmt(tx)} ${fmt(ty)})">
+  <g transform="translate(${fmt(tx)} ${fmt(ty)}) scale(${fmt(scale)})">
     ${g}
   </g>
 </svg>`;
