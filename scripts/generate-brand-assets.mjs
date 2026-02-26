@@ -181,7 +181,7 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
       const pts = `${fmt(a.x + dx)},${fmt(a.y + dy)} ${fmt(b.x + dx)},${fmt(b.y + dy)} ${fmt(
         b.x
       )},${fmt(b.y)} ${fmt(a.x)},${fmt(a.y)}`;
-      sidePolys.push(`<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" />`);
+      sidePolys.push(`<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" stroke="${cfg.stroke}" stroke-width="0.95" stroke-linejoin="round" stroke-linecap="round" />`);
       faceIdx++;
     }
   }
