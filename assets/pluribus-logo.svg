@@ -1,9 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
-  <rect width="1024" height="1024" rx="180" fill="#DEE3E2"/>
-  <g>
-    <path d="M236 236H478C581.866 236 666 320.134 666 424C666 527.866 581.866 612 478 612H346V788H236V236Z" fill="#78B3D6"/>
-    <rect x="346" y="502" width="176" height="110" rx="55" fill="#DEE3E2"/>
-    <path d="M552 236H658V788H552V236Z" fill="#4F7969"/>
-    <path d="M712 236H818V788H712V236Z" fill="#D86969"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" fill="none">
+  <rect width="1200" height="360" rx="28" fill="#dee3e2"/>
+
+  <!-- Icon container -->
+  <g transform="translate(26,26)">
+    <rect width="308" height="308" rx="42" fill="white" fill-opacity="0.62"/>
+    <rect x="0.5" y="0.5" width="307" height="307" rx="41.5" stroke="black" stroke-opacity="0.08"/>
+
+    <!-- Letter mark -->
+    <text x="86" y="220" font-size="192" font-weight="800"
+      font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+      fill="#78b3d6">P</text>
+
+    <!-- Accent bars -->
+    <rect x="238" y="72" width="14" height="164" rx="7" fill="#4f7969"/>
+    <rect x="262" y="72" width="14" height="164" rx="7" fill="#d86969"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(372, 0)">
+    <text x="0" y="172" font-size="112" font-weight="750"
+      letter-spacing="-1.5"
+      font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+      fill="#111827">Pluribus</text>
+    <rect x="0" y="202" width="530" height="10" rx="5" fill="#78b3d6"/>
+    <rect x="540" y="202" width="78" height="10" rx="5" fill="#4f7969"/>
+    <rect x="624" y="202" width="78" height="10" rx="5" fill="#d86969"/>
   </g>
 </svg>
