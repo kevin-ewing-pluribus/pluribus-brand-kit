@@ -18,7 +18,7 @@ const cfg = {
   c2: args.c2 || '#d86969',
   c3: args.c3 || '#4f7969',
   c4: args.c4 || '#fccbcb',
-  topFill: args.topFill || '#f2f2f2',
+  topFill: args.topFill || '#ffffff',
   stroke: args.stroke || '#1e1e1e',
   depth: Number(args.depth || 13),
   depthAngle: Number(args.depthAngle || -25),
@@ -176,7 +176,7 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
       if (dist(a, b) < 0.45) continue;
       const pts = `${fmt(a.x + dx)},${fmt(a.y + dy)} ${fmt(b.x + dx)},${fmt(b.y + dy)} ${fmt(b.x)},${fmt(b.y)} ${fmt(a.x)},${fmt(a.y)}`;
       sidePolys.push(
-        `<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" stroke="${cfg.stroke}" stroke-width="0.95" />`
+        `<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" />`
       );
       faceIdx++;
     }
