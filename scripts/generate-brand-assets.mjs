@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import opentype from 'opentype.js';
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((arg) => {
@@ -19,10 +20,17 @@ const cfg = {
   c4: args.c4 || '#fccbcb',
   topFill: args.topFill || '#f2f2f2',
   stroke: args.stroke || '#1e1e1e',
-  depthX: Number(args.depthX || 12),
-  depthY: Number(args.depthY || -5),
-  seed: Number(args.seed || 7),
+  depth: Number(args.depth || 13),
+  depthAngle: Number(args.depthAngle || -25),
+  depthJitter: Number(args.depthJitter || 36),
+  tilt: Number(args.tilt || 10),
+  tracking: Number(args.tracking || -2),
+  curveRes: Number(args.curveRes || 12),
+  seed: Number(args.seed || 12),
   transparent: String(args.transparent || 'true') === 'true',
+  fontPath:
+    args.fontPath ||
+    path.resolve(process.cwd(), 'assets/fonts/FormulaCondensed-Bold.otf'),
   outDir: args.outDir || path.resolve(process.cwd(), 'assets'),
 };
 
@@ -37,6 +45,10 @@ function esc(s) {
     .replace(/'/g, '&apos;');
 }
 
+function fmt(n) {
+  return Number(n.toFixed(2));
+}
+
 function mulberry32(a) {
   return function () {
     let t = (a += 0x6d2b79f5);
@@ -46,118 +58,214 @@ function mulberry32(a) {
   };
 }
 
-const rand = mulberry32(cfg.seed);
-
-function charAdvance(ch, fs) {
-  if (/[ilI1]/.test(ch)) return fs * 0.34;
-  if (/[mwMW]/.test(ch)) return fs * 0.86;
-  if (/[A-Z]/.test(ch)) return fs * 0.68;
-  if (/[a-z]/.test(ch)) return fs * 0.57;
-  if (ch === ' ') return fs * 0.34;
-  return fs * 0.56;
+function quadAt(p0, p1, p2, t) {
+  return {
+    x: (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x,
+    y: (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y,
+  };
 }
 
-function wordMetrics(text, fs, tracking = 2) {
-  let w = 0;
-  for (const ch of text) w += charAdvance(ch, fs) + tracking;
-  return w;
+function cubicAt(p0, p1, p2, p3, t) {
+  const mt = 1 - t;
+  return {
+    x:
+      mt * mt * mt * p0.x +
+      3 * mt * mt * t * p1.x +
+      3 * mt * t * t * p2.x +
+      t * t * t * p3.x,
+    y:
+      mt * mt * mt * p0.y +
+      3 * mt * mt * t * p1.y +
+      3 * mt * t * t * p2.y +
+      t * t * t * p3.y,
+  };
 }
 
-function sidePattern(id) {
-  return `<pattern id="${id}" patternUnits="userSpaceOnUse" width="24" height="84" x="0" y="0">
-    <rect width="24" height="21" fill="${cfg.c1}"/>
-    <rect y="21" width="24" height="21" fill="${cfg.c2}"/>
-    <rect y="42" width="24" height="21" fill="${cfg.c3}"/>
-    <rect y="63" width="24" height="21" fill="${cfg.c4}"/>
-  </pattern>`;
+function dist(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.sqrt(dx * dx + dy * dy);
 }
 
-function extrudedGlyph({ ch, x, y, fs, rotate, dx, dy, idPrefix }) {
-  const pId = `${idPrefix}-pat`;
-  return `<g id="${idPrefix}" transform="rotate(${rotate} ${x} ${y})">
-    <defs>${sidePattern(pId)}</defs>
+function pathToD(commands, ox = 0, oy = 0) {
+  const d = [];
+  for (const c of commands) {
+    if (c.type === 'M') d.push(`M ${fmt(c.x + ox)} ${fmt(c.y + oy)}`);
+    else if (c.type === 'L') d.push(`L ${fmt(c.x + ox)} ${fmt(c.y + oy)}`);
+    else if (c.type === 'Q')
+      d.push(
+        `Q ${fmt(c.x1 + ox)} ${fmt(c.y1 + oy)} ${fmt(c.x + ox)} ${fmt(c.y + oy)}`
+      );
+    else if (c.type === 'C')
+      d.push(
+        `C ${fmt(c.x1 + ox)} ${fmt(c.y1 + oy)} ${fmt(c.x2 + ox)} ${fmt(c.y2 + oy)} ${fmt(c.x + ox)} ${fmt(c.y + oy)}`
+      );
+    else if (c.type === 'Z') d.push('Z');
+  }
+  return d.join(' ');
+}
 
-    <!-- back shape defines the side face coloring -->
-    <text x="${x + dx}" y="${y + dy}" font-size="${fs}" font-weight="800" fill="url(#${pId})"
-      stroke="${cfg.stroke}" stroke-width="1.0" paint-order="stroke"
-      font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>
+function sampleContours(commands, curveRes = 12) {
+  const contours = [];
+  let contour = [];
+  let start = null;
+  let prev = null;
 
-    <!-- front face -->
-    <text x="${x}" y="${y}" font-size="${fs}" font-weight="800" fill="${cfg.topFill}"
-      stroke="${cfg.stroke}" stroke-width="1.2" paint-order="stroke"
-      font-family="Inter, SF Pro Text, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">${esc(ch)}</text>
+  for (const c of commands) {
+    if (c.type === 'M') {
+      if (contour.length) contours.push(contour);
+      contour = [];
+      start = { x: c.x, y: c.y };
+      prev = start;
+      contour.push(start);
+    } else if (c.type === 'L' && prev) {
+      const p = { x: c.x, y: c.y };
+      contour.push(p);
+      prev = p;
+    } else if (c.type === 'Q' && prev) {
+      const p0 = prev;
+      const p1 = { x: c.x1, y: c.y1 };
+      const p2 = { x: c.x, y: c.y };
+      for (let i = 1; i <= curveRes; i++) {
+        contour.push(quadAt(p0, p1, p2, i / curveRes));
+      }
+      prev = p2;
+    } else if (c.type === 'C' && prev) {
+      const p0 = prev;
+      const p1 = { x: c.x1, y: c.y1 };
+      const p2 = { x: c.x2, y: c.y2 };
+      const p3 = { x: c.x, y: c.y };
+      for (let i = 1; i <= curveRes; i++) {
+        contour.push(cubicAt(p0, p1, p2, p3, i / curveRes));
+      }
+      prev = p3;
+    } else if (c.type === 'Z') {
+      if (contour.length && start && dist(contour[contour.length - 1], start) > 0.25) {
+        contour.push(start);
+      }
+      if (contour.length) contours.push(contour);
+      contour = [];
+      prev = start;
+    }
+  }
+
+  if (contour.length) contours.push(contour);
+  return contours;
+}
+
+function sideColor(i, gi) {
+  const palette = [cfg.c1, cfg.c2, cfg.c3, cfg.c4];
+  return palette[(i + gi) % palette.length];
+}
+
+function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
+  const dFront = pathToD(glyphPath.commands, 0, 0);
+  const dBack = pathToD(glyphPath.commands, dx, dy);
+  const bb = glyphPath.getBoundingBox();
+  const cx = (bb.x1 + bb.x2) / 2;
+  const cy = (bb.y1 + bb.y2) / 2;
+
+  const contours = sampleContours(glyphPath.commands, cfg.curveRes);
+  const sidePolys = [];
+  let faceIdx = 0;
+
+  for (const contour of contours) {
+    for (let i = 0; i < contour.length - 1; i++) {
+      const a = contour[i];
+      const b = contour[i + 1];
+      if (dist(a, b) < 0.45) continue;
+      const pts = `${fmt(a.x + dx)},${fmt(a.y + dy)} ${fmt(b.x + dx)},${fmt(b.y + dy)} ${fmt(b.x)},${fmt(b.y)} ${fmt(a.x)},${fmt(a.y)}`;
+      sidePolys.push(
+        `<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" stroke="${cfg.stroke}" stroke-width="0.95" />`
+      );
+      faceIdx++;
+    }
+  }
+
+  return `<g transform="rotate(${fmt(rotate)} ${fmt(cx)} ${fmt(cy)})">
+    <path d="${dBack}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.0" />
+    ${sidePolys.join('\n')}
+    <path d="${dFront}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.15" />
   </g>`;
 }
 
-function makeWordmarkSVG() {
+function measureText(font, text, fontSize, tracking) {
+  const scale = fontSize / font.unitsPerEm;
+  let x = 0;
+  let prev = null;
+  for (const ch of text) {
+    const glyph = font.charToGlyph(ch);
+    if (prev) x += font.getKerningValue(prev, glyph) * scale;
+    x += (glyph.advanceWidth || font.unitsPerEm * 0.5) * scale + tracking;
+    prev = glyph;
+  }
+  return x;
+}
+
+function renderWordmark(font) {
   const W = 1400;
   const H = 420;
-  const fs = 244;
-  const tracking = -2;
-  const text = cfg.text;
-  const textWidth = wordMetrics(text, fs, tracking);
-  let cursor = (W - textWidth) / 2;
-  const baseline = 286;
+  const fs = 242;
+  const width = measureText(font, cfg.text, fs, cfg.tracking);
+  const scale = fs / font.unitsPerEm;
+  let x = (W - width) / 2;
+  const baseline = 292;
+  const rand = mulberry32(cfg.seed);
 
-  const glyphs = [];
+  let prev = null;
+  const groups = [];
   let idx = 0;
-  for (const ch of text) {
-    const adv = charAdvance(ch, fs) + tracking;
+  for (const ch of cfg.text) {
+    const glyph = font.charToGlyph(ch);
+    if (prev) x += font.getKerningValue(prev, glyph) * scale;
+
     if (ch !== ' ') {
-      const rotate = (rand() - 0.5) * 10;
-      glyphs.push(
-        extrudedGlyph({
-          ch,
-          x: cursor,
-          y: baseline,
-          fs,
-          rotate,
-          dx: cfg.depthX,
-          dy: cfg.depthY,
-          idPrefix: `glyph-${idx}`,
-        })
-      );
+      const pathObj = glyph.getPath(x, baseline, fs);
+      const rot = (rand() - 0.5) * cfg.tilt;
+      const ang = ((cfg.depthAngle + (rand() - 0.5) * cfg.depthJitter) * Math.PI) / 180;
+      const dx = Math.cos(ang) * cfg.depth;
+      const dy = Math.sin(ang) * cfg.depth;
+      groups.push(glyphGroup({ glyphPath: pathObj, idx, rotate: rot, dx, dy }));
+      idx++;
     }
-    cursor += adv;
-    idx++;
+
+    x += (glyph.advanceWidth || font.unitsPerEm * 0.5) * scale + cfg.tracking;
+    prev = glyph;
   }
 
-  const bgRect = cfg.transparent ? '' : `<rect width="${W}" height="${H}" rx="16" fill="${cfg.bg}"/>`;
+  const bgRect = cfg.transparent ? '' : `<rect width="${W}" height="${H}" fill="${cfg.bg}"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" fill="none">
   ${bgRect}
-  <g>${glyphs.join('\n')}</g>
+  ${groups.join('\n')}
 </svg>`;
 }
 
-function makeIconSVG(size = 256) {
-  const fs = size * 0.62;
-  const baseline = size * 0.70;
-  const x = size * 0.26;
+function renderIcon(font) {
+  const S = 256;
+  const fs = 192;
+  const glyph = font.charToGlyph(cfg.iconText);
+  const pathObj = glyph.getPath(52, 186, fs);
+  const g = glyphGroup({ glyphPath: pathObj, idx: 0, rotate: -6, dx: cfg.depth * 0.82, dy: -cfg.depth * 0.36 });
 
-  const glyph = extrudedGlyph({
-    ch: cfg.iconText,
-    x,
-    y: baseline,
-    fs,
-    rotate: -6,
-    dx: Math.max(7, Math.round(cfg.depthX * 0.9)),
-    dy: Math.min(-2, Math.round(cfg.depthY * 0.9)),
-    idPrefix: 'icon-glyph',
-  });
-
-  const bgRect = cfg.transparent ? '' : `<rect width="${size}" height="${size}" rx="${Math.round(size * 0.12)}" fill="${cfg.bg}"/>`;
+  const bgRect = cfg.transparent ? '' : `<rect width="${S}" height="${S}" fill="${cfg.bg}"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" fill="none">
   ${bgRect}
-  ${glyph}
+  ${g}
 </svg>`;
 }
 
-const logoSvg = makeWordmarkSVG();
-const faviconSvg = makeIconSVG(256);
+if (!fs.existsSync(cfg.fontPath)) {
+  console.error(`Font not found: ${cfg.fontPath}`);
+  process.exit(1);
+}
+
+const font = opentype.loadSync(cfg.fontPath);
+const logoSvg = renderWordmark(font);
+const faviconSvg = renderIcon(font);
 
 fs.writeFileSync(path.join(cfg.outDir, 'pluribus-logo.svg'), logoSvg);
 fs.writeFileSync(path.join(cfg.outDir, 'pluribus-favicon.svg'), faviconSvg);
@@ -165,4 +273,5 @@ fs.writeFileSync(path.join(cfg.outDir, 'pluribus-favicon.svg'), faviconSvg);
 console.log('Generated:');
 console.log(path.join(cfg.outDir, 'pluribus-logo.svg'));
 console.log(path.join(cfg.outDir, 'pluribus-favicon.svg'));
+console.log('Using font:', cfg.fontPath);
 console.log('Config:', cfg);
