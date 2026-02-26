@@ -1,30 +1,31 @@
 :root {
-  /* Pulled from blog.kevin-ewing.com logo colors */
-  --pl-color-bg: #F8F8F8;
-  --pl-color-bg-soft: #FFFFFF;
-  --pl-color-surface: rgba(255, 255, 255, 0.72);
-  --pl-color-surface-strong: rgba(255, 255, 255, 0.9);
+  /* Kevin-provided palette */
+  --pl-color-bg: #dee3e2;
+  --pl-color-bg-soft: #f2f5f4;
+  --pl-color-surface: rgba(255, 255, 255, 0.68);
+  --pl-color-surface-strong: rgba(255, 255, 255, 0.88);
   --pl-color-text: #111827;
   --pl-color-text-muted: #4B5563;
 
-  --pl-color-primary: #80B0D0;
-  --pl-color-secondary: #587868;
-  --pl-color-accent: #C86868;
+  --pl-color-primary: #78b3d6;
+  --pl-color-secondary: #4f7969;
+  --pl-color-accent: #d86969;
+  --pl-color-soft-accent: #fccbcb;
 
   --pl-color-success: #32A94C;
   --pl-color-warning: #BF4408;
   --pl-color-danger: #BF2626;
   --pl-color-border: rgba(17, 24, 39, 0.12);
 
-  --pl-gradient-primary: linear-gradient(135deg, #80B0D0 0%, #587868 100%);
-  --pl-gradient-soft: linear-gradient(135deg, rgba(128,176,208,0.18) 0%, rgba(88,120,104,0.16) 55%, rgba(200,104,104,0.14) 100%);
+  --pl-gradient-primary: linear-gradient(135deg, #78b3d6 0%, #4f7969 100%);
+  --pl-gradient-soft: linear-gradient(135deg, rgba(120,179,214,0.18) 0%, rgba(252,203,203,0.20) 50%, rgba(216,105,105,0.16) 100%);
 
   --pl-font-sans: Inter, SF Pro Text, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --pl-font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  --pl-radius-sm: 10px;
-  --pl-radius-md: 14px;
-  --pl-radius-lg: 20px;
+  --pl-radius-sm: 6px;
+  --pl-radius-md: 10px;
+  --pl-radius-lg: 14px;
   --pl-radius-pill: 999px;
 
   --pl-space-1: 4px;
@@ -35,6 +36,6 @@
   --pl-space-6: 32px;
   --pl-space-7: 48px;
 
-  --pl-shadow-sm: 0 8px 22px rgba(17, 24, 39, 0.08);
-  --pl-shadow-md: 0 18px 44px rgba(17, 24, 39, 0.12);
+  --pl-shadow-sm: 0 6px 18px rgba(17, 24, 39, 0.07);
+  --pl-shadow-md: 0 14px 34px rgba(17, 24, 39, 0.10);
 }
