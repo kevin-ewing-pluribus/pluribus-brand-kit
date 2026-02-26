@@ -170,7 +170,8 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
   const cy = (bb.y1 + bb.y2) / 2;
 
   const contours = sampleContours(glyphPath.commands, cfg.curveRes);
-  const sidePolys = [];
+  const sideFills = [];
+  const sideStrokes = [];
   let faceIdx = 0;
 
   for (const contour of contours) {
@@ -181,15 +182,17 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
       const pts = `${fmt(a.x + dx)},${fmt(a.y + dy)} ${fmt(b.x + dx)},${fmt(b.y + dy)} ${fmt(
         b.x
       )},${fmt(b.y)} ${fmt(a.x)},${fmt(a.y)}`;
-      sidePolys.push(`<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" stroke="${cfg.stroke}" stroke-width="0.95" stroke-linejoin="round" stroke-linecap="round" />`);
+      sideFills.push(`<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" />`);
+      sideStrokes.push(`<polygon points="${pts}" fill="none" stroke="${cfg.stroke}" stroke-width="1.05" stroke-linejoin="round" stroke-linecap="round" />`);
       faceIdx++;
     }
   }
 
   return `<g transform="rotate(${fmt(rotate)} ${fmt(cx)} ${fmt(cy)})">
-    <path d="${dBack}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.0" />
-    ${sidePolys.join('\n')}
-    <path d="${dBack}" fill="none" stroke="${cfg.stroke}" stroke-width="1.0" />
+    <path d="${dBack}" fill="${cfg.topFill}" />
+    ${sideFills.join('\n')}
+    ${sideStrokes.join('\n')}
+    <path d="${dBack}" fill="none" stroke="${cfg.stroke}" stroke-width="1.05" />
     <path d="${dFront}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.15" />
   </g>`;
 }
