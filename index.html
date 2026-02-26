@@ -16,7 +16,7 @@
         radial-gradient(1000px 500px at -10% -10%, rgba(120,179,214,0.20), transparent 60%),
         radial-gradient(800px 420px at 105% -5%, rgba(79,121,105,0.16), transparent 60%),
         radial-gradient(900px 500px at 50% 115%, rgba(216,105,105,0.14), transparent 60%),
-        #fbfcfb;
+        #fdfefd;
     }
     .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 18px 44px; }
     .glass {
@@ -28,7 +28,7 @@
       box-shadow: var(--pl-shadow-sm);
     }
     .hero { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 20px; align-items: start; }
-    .hero-logo { width: min(760px, 100%); height: auto; display: block; }
+    .hero-logo { width: min(260px, 52vw); height: auto; display: block; }
     .hero h1 { margin: 0; font-size: 32px; letter-spacing: -0.02em; }
     .hero p { margin: 8px 0 0; color: var(--pl-color-text-muted); }
     h2 { margin: 30px 0 10px; font-size: 22px; letter-spacing: -0.01em; }
@@ -77,11 +77,11 @@
 <body>
   <div class="wrap">
     <section class="glass hero">
-      <img class="hero-logo" src="./assets/pluribus-logo.svg" alt="Pluribus logo" />
+      <img class="hero-logo" src="./assets/pluribus-favicon.svg" alt="Pluribus primary mark" />
       <div>
         <h1>Pluribus Brand Guidelines</h1>
         <p>Modern, minimal, professional identity standard for anything from Pluribus.</p>
-        <p class="muted">Version 1.3.1 • tighter transparent logo framing + larger presentation scale</p>
+        <p class="muted">Version 1.3.2 • icon-first usage + tighter transparent framing</p>
       </div>
     </section>
 
@@ -95,9 +95,10 @@
     <h2>2) Logo + Favicon</h2>
     <section class="glass card">
       <p><a href="./assets/pluribus-logo.svg">pluribus-logo.svg</a> · <a href="./assets/pluribus-favicon.svg">pluribus-favicon.svg</a></p>
+      <p class="muted" style="margin-bottom:10px;"><strong>Default usage:</strong> icon-first (the “P” mark). Use full wordmark sparingly.</p>
       <div class="logo-samples">
-        <div class="logo-box logo-light"><img src="./assets/pluribus-logo.svg" width="430" alt="logo on light"/></div>
-        <div class="logo-box logo-soft"><img src="./assets/pluribus-logo.svg" width="430" alt="logo on soft"/></div>
+        <div class="logo-box logo-light"><img src="./assets/pluribus-favicon.svg" width="220" alt="P mark on light"/></div>
+        <div class="logo-box logo-soft"><img src="./assets/pluribus-logo.svg" width="340" alt="wordmark on soft"/></div>
       </div>
       <p class="muted" style="margin-top:10px;">Minimum digital size: 24px icon / 96px logo. Keep clear space equal to 50% of icon width.</p>
     </section>

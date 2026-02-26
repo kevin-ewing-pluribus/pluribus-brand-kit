@@ -189,6 +189,7 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
   return `<g transform="rotate(${fmt(rotate)} ${fmt(cx)} ${fmt(cy)})">
     <path d="${dBack}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.0" />
     ${sidePolys.join('\n')}
+    <path d="${dBack}" fill="none" stroke="${cfg.stroke}" stroke-width="1.0" />
     <path d="${dFront}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.15" />
   </g>`;
 }
