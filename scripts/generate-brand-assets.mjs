@@ -25,7 +25,7 @@ const cfg = {
   depthJitter: Number(args.depthJitter || 36),
   tilt: Number(args.tilt || 10),
   tracking: Number(args.tracking || -2),
-  curveRes: Number(args.curveRes || 12),
+  curveRes: Number(args.curveRes || 28),
   fontSize: Number(args.fontSize || 276),
   seed: Number(args.seed || 12),
   transparent: String(args.transparent || 'true') === 'true',
@@ -172,9 +172,17 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
   const contours = sampleContours(glyphPath.commands, cfg.curveRes);
   const sideFills = [];
   const sideStrokes = [];
+  const backOutlinePaths = [];
   let faceIdx = 0;
 
   for (const contour of contours) {
+    if (contour.length > 1) {
+      const d = contour
+        .map((p, i) => `${i === 0 ? 'M' : 'L'} ${fmt(p.x + dx)} ${fmt(p.y + dy)}`)
+        .join(' ');
+      backOutlinePaths.push(`${d} Z`);
+    }
+
     for (let i = 0; i < contour.length - 1; i++) {
       const a = contour[i];
       const b = contour[i + 1];
@@ -192,7 +200,9 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
     <path d="${dBack}" fill="${cfg.topFill}" />
     ${sideFills.join('\n')}
     ${sideStrokes.join('\n')}
-    <path d="${dBack}" fill="none" stroke="${cfg.stroke}" stroke-width="1.05" />
+    ${backOutlinePaths
+      .map((d) => `<path d="${d}" fill="none" stroke="${cfg.stroke}" stroke-width="1.05" stroke-linejoin="round" />`)
+      .join('\n')}
     <path d="${dFront}" fill="${cfg.topFill}" stroke="${cfg.stroke}" stroke-width="1.15" />
   </g>`;
 }
@@ -212,7 +222,7 @@ function glyphBounds({ glyphPath, rotate, dx, dy }) {
     }
   }
 
-  const m = 0;
+  const m = 1.2;
   b.minX -= m;
   b.minY -= m;
   b.maxX += m;
