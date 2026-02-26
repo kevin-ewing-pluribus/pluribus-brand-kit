@@ -25,9 +25,7 @@ const cfg = {
   depthJitter: Number(args.depthJitter || 36),
   tilt: Number(args.tilt || 10),
   tracking: Number(args.tracking || -2),
-  curveRes: Number(args.curveRes || 16),
-  minFaceLen: Number(args.minFaceLen || 1.35),
-  colorBlockSpan: Number(args.colorBlockSpan || 4),
+  curveRes: Number(args.curveRes || 28),
   fontSize: Number(args.fontSize || 276),
   seed: Number(args.seed || 12),
   transparent: String(args.transparent || 'true') === 'true',
@@ -188,12 +186,11 @@ function glyphGroup({ glyphPath, idx, rotate, dx, dy }) {
     for (let i = 0; i < contour.length - 1; i++) {
       const a = contour[i];
       const b = contour[i + 1];
-      if (dist(a, b) < cfg.minFaceLen) continue;
+      if (dist(a, b) < 0.45) continue;
       const pts = `${fmt(a.x + dx)},${fmt(a.y + dy)} ${fmt(b.x + dx)},${fmt(b.y + dy)} ${fmt(
         b.x
       )},${fmt(b.y)} ${fmt(a.x)},${fmt(a.y)}`;
-      const colorIndex = Math.floor(faceIdx / Math.max(1, cfg.colorBlockSpan));
-      sideFills.push(`<polygon points="${pts}" fill="${sideColor(colorIndex, idx)}" />`);
+      sideFills.push(`<polygon points="${pts}" fill="${sideColor(faceIdx, idx)}" />`);
       sideStrokes.push(`<polygon points="${pts}" fill="none" stroke="${cfg.stroke}" stroke-width="1.05" stroke-linejoin="round" stroke-linecap="round" />`);
       faceIdx++;
     }
